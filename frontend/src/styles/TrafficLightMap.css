@@ -1,0 +1,310 @@
+.mapboxgl-popup {
+  z-index: 1;
+}
+
+.mapboxgl-popup-content {
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Dashboard Cards */
+.dashboard-card {
+  height: 100%;
+  transition: all 0.2s ease;
+  background: #ffffff;
+  border-radius: 8px;
+}
+
+.dashboard-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.dashboard-card-header {
+  padding: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.dashboard-card-content {
+  padding: 16px;
+}
+
+/* Statistic Cards */
+.statistic-card {
+  padding: 16px;
+  height: 100%;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.statistic-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.statistic-value {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 8px 0;
+}
+
+.statistic-change {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+/* Map Container */
+.map-container {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.map-legend {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Model Selection */
+.model-button {
+  margin-right: 8px;
+  margin-bottom: 8px;
+  transition: all 0.2s ease;
+  text-transform: none;
+  min-width: 100px;
+}
+
+.model-button:hover:not(.Mui-disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.model-button.Mui-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Metrics Grid */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.metric-item {
+  background: rgba(0, 0, 0, 0.02);
+  padding: 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.metric-item:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* Charts */
+.chart-container {
+  position: relative;
+  height: 300px;
+  margin-top: 16px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .dashboard-card {
+    margin-bottom: 16px;
+  }
+
+  .statistic-value {
+    font-size: 1.5rem;
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .dashboard-card-header,
+  .dashboard-card-content {
+    padding: 12px;
+  }
+
+  .statistic-card {
+    padding: 12px;
+  }
+
+  .map-container {
+    height: 300px;
+  }
+
+  .model-button {
+    width: 100%;
+    margin-right: 0;
+  }
+
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mapboxgl-popup-content {
+    padding: 8px;
+    max-width: 200px;
+  }
+}
+
+/* Theme Colors */
+:root {
+  --primary-color: #1976d2;
+  --success-color: #4caf50;
+  --warning-color: #ff9800;
+  --error-color: #f44336;
+  --background-default: #f5f5f5;
+  --background-paper: #ffffff;
+  --text-primary: rgba(0, 0, 0, 0.87);
+  --text-secondary: rgba(0, 0, 0, 0.6);
+}
+
+.metric-tooltip {
+  cursor: help;
+}
+
+.metric-card {
+  padding: 16px;
+  height: 100%;
+  transition: all 0.2s ease;
+}
+
+.metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.metric-card-title {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.875rem;
+  margin-bottom: 8px;
+}
+
+.metric-card-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+/* Responsive styles */
+@media (max-width: 1024px) {
+  .dashboard-panel {
+    width: 100%;
+    max-width: none;
+  }
+
+  .metric-card {
+    padding: 12px;
+  }
+
+  .metric-card-value {
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .model-selection {
+    flex-direction: column;
+  }
+  
+  .model-button {
+    width: 100%;
+    margin-right: 0;
+  }
+
+  .mapboxgl-popup-content {
+    padding: 8px;
+    max-width: 200px;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Remove the blue nav bar styles if they exist */
+.navbar, .nav-bar {
+  display: none;
+} 

@@ -1,0 +1,169 @@
+/* Responsive layout */
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column !important;
+  }
+
+  .map-container {
+    height: 50vh !important;
+    flex: none !important;
+  }
+
+  .dashboard-container {
+    flex: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .tabs-container {
+    overflow-x: auto;
+  }
+
+  .tab {
+    min-width: auto !important;
+    padding: 8px 16px !important;
+  }
+
+  .chart-container {
+    width: 100% !important;
+    height: 250px !important;
+  }
+}
+
+/* Dark mode styles */
+.dark-mode {
+  background-color: #1e1e1e;
+  color: #ffffff;
+}
+
+.dark-mode .MuiPaper-root {
+  background-color: #2d2d2d;
+}
+
+.dark-mode .MuiDivider-root {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Chart styles */
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  margin-bottom: 24px;
+}
+
+/* Map styles */
+.mapboxgl-map {
+  background-color: #ffffff;
+}
+
+.mapboxgl-popup {
+  max-width: 300px;
+}
+
+/* Loading spinner */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+/* Tooltip styles */
+.tooltip {
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  pointer-events: none;
+}
+
+/* Legend styles */
+.legend {
+  position: absolute;
+  bottom: 32px;
+  right: 32px;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  border-radius: 2px;
+}
+
+/* Tab styles */
+.tabs-container {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  margin-bottom: 24px;
+}
+
+.tab {
+  min-width: 120px;
+  text-transform: none;
+  font-weight: 500;
+}
+
+/* List styles */
+.metrics-list {
+  margin-top: 16px;
+}
+
+.metrics-list .MuiListItem-root {
+  padding: 8px 0;
+}
+
+.metrics-list .MuiListItemText-primary {
+  font-weight: 500;
+}
+
+.metrics-list .MuiListItemText-secondary {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+/* Card styles */
+.metric-card {
+  padding: 16px;
+  border-radius: 8px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 16px;
+}
+
+.metric-card-title {
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.metric-card-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #2196F3;
+}
+
+/* Animation styles */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+} 

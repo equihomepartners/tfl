@@ -1,0 +1,109 @@
+# Data Sources Configuration and Metadata
+
+abs_data:
+  source: "Australian Bureau of Statistics"
+  api_endpoint: "https://api.abs.gov.au/data/"
+  update_frequency: "quarterly"
+  datasets:
+    population:
+      id: "ABS_ERP_LGA"
+      description: "Estimated Resident Population by LGA"
+      fields:
+        - name: "population"
+          type: "integer"
+          description: "Total population"
+    employment:
+      id: "ABS_LF"
+      description: "Labour Force Statistics"
+      fields:
+        - name: "employment_rate"
+          type: "float"
+          description: "Employment rate percentage"
+        - name: "wages"
+          type: "float"
+          description: "Average weekly earnings"
+
+property_data:
+  source: "Domain API"
+  api_endpoint: "https://api.domain.com.au/v1/"
+  update_frequency: "daily"
+  datasets:
+    sales:
+      description: "Property sales data"
+      fields:
+        - name: "median_price"
+          type: "float"
+          description: "Median property price"
+        - name: "growth_rate"
+          type: "float"
+          description: "Annual growth rate"
+    listings:
+      description: "Current property listings"
+      fields:
+        - name: "total_listings"
+          type: "integer"
+          description: "Number of active listings"
+        - name: "days_on_market"
+          type: "float"
+          description: "Average days on market"
+
+rba_data:
+  source: "Reserve Bank of Australia"
+  api_endpoint: "https://api.rba.gov.au/v1/"
+  update_frequency: "monthly"
+  datasets:
+    interest_rates:
+      description: "Interest rate data"
+      fields:
+        - name: "cash_rate"
+          type: "float"
+          description: "RBA cash rate"
+    economic_indicators:
+      description: "Key economic indicators"
+      fields:
+        - name: "gdp_growth"
+          type: "float"
+          description: "GDP growth rate"
+        - name: "inflation_rate"
+          type: "float"
+          description: "Consumer Price Index change"
+
+nsw_gov_data:
+  source: "NSW Government Open Data"
+  api_endpoint: "https://api.nsw.gov.au/v1/"
+  update_frequency: "quarterly"
+  datasets:
+    crime_stats:
+      description: "Crime statistics by LGA"
+      fields:
+        - name: "crime_rate"
+          type: "float"
+          description: "Crime incidents per 100,000 population"
+    infrastructure:
+      description: "Infrastructure projects and facilities"
+      fields:
+        - name: "project_count"
+          type: "integer"
+          description: "Number of active infrastructure projects"
+        - name: "infrastructure_score"
+          type: "float"
+          description: "Overall infrastructure rating"
+
+alternative_data:
+  source: "Various APIs"
+  update_frequency: "real-time"
+  datasets:
+    sentiment:
+      description: "Social media and news sentiment"
+      provider: "NewsAPI & Twitter API"
+      fields:
+        - name: "sentiment_score"
+          type: "float"
+          description: "Aggregated sentiment score"
+    development:
+      description: "Development applications"
+      provider: "Council APIs"
+      fields:
+        - name: "da_count"
+          type: "integer"
+          description: "Number of development applications" 
