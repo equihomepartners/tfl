@@ -18,6 +18,7 @@
     "@tensorflow/tfjs": "^4.17.0",
     "@turf/turf": "^7.2.0",
     "@types/mapbox-gl": "^2.7.19",
+    "@vue/tsconfig": "^0.7.0",
     "chart.js": "^4.4.8",
     "chroma-js": "^2.4.2",
     "mapbox-gl": "^3.10.0",

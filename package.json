@@ -1,6 +1,7 @@
 {
   "name": "equihome-tfl",
   "version": "1.0.0",
+  "type": "module",
   "description": "EquiHome Traffic Light System",
   "main": "src/server.ts",
   "scripts": {

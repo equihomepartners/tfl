@@ -27,6 +27,18 @@ class PredictionService:
         print(f"Current working directory: {os.getcwd()}")
         
         try:
+            # Initialize OpenAI client if API key is available
+            api_key = os.getenv('OPENAI_API_KEY')
+            if api_key:
+                self.openai_client = AsyncOpenAI(api_key=api_key)
+                print("OpenAI client initialized successfully")
+            else:
+                print("Warning: No OpenAI API key found")
+        except Exception as e:
+            print(f"OpenAI client initialization failed: {str(e)}")
+            self.openai_client = None
+
+        try:
             # Try loading the JSON format first
             json_path = model_path.replace('.joblib', '.json')
             if os.path.exists(json_path):
@@ -46,17 +58,6 @@ class PredictionService:
             import traceback
             print(f"Traceback: {traceback.format_exc()}")
             self.model = None
-
-        try:
-            api_key = os.getenv('OPENAI_API_KEY')
-            if api_key:
-                self.openai_client = AsyncOpenAI()
-                print("OpenAI client initialized successfully")
-            else:
-                print("Warning: No OpenAI API key found")
-        except Exception as e:
-            print(f"Warning: Failed to initialize OpenAI client: {str(e)}")
-            self.openai_client = None
 
     def _load_model(self):
         """Load the trained model."""
@@ -136,11 +137,11 @@ class PredictionService:
     def _generate_rule_based_insights(self, zone_data: Dict) -> Dict:
         """Generate rule-based insights when AI is not available."""
         try:
-            # Simple scoring based on metrics
-            growth_score = min(100, zone_data['growth_rate'] * 100)  # Convert to percentage
-            crime_penalty = max(0, zone_data['crime_rate'] * 100)    # Convert to percentage
-            infra_score = zone_data['infrastructure_score'] * 10     # Scale to 0-10
-            sentiment_score = zone_data['sentiment'] * 100           # Convert to percentage
+            # Calculate scores
+            growth_score = min(100, zone_data.get('growth_rate', 0) * 100)
+            crime_penalty = max(0, zone_data.get('crime_rate', 0) * 100)
+            infra_score = zone_data.get('infrastructure_score', 0) * 10
+            sentiment_score = zone_data.get('sentiment', 0) * 100
             
             # Calculate overall score
             total_score = (
@@ -150,19 +151,22 @@ class PredictionService:
                 sentiment_score * 0.2
             )
             
-            # Generate basic analysis
-            analysis = f"""
-            Analysis based on key metrics:
-            - Growth Rate: {growth_score:.1f}% ({growth_score < 50 and 'Low' or 'High'})
-            - Crime Rate: {crime_penalty:.1f}% ({crime_penalty > 50 and 'High Risk' or 'Low Risk'})
-            - Infrastructure Score: {infra_score:.1f}/10 ({infra_score < 5 and 'Needs Improvement' or 'Well Developed'})
-            - Market Sentiment: {sentiment_score:.1f}% ({sentiment_score < 50 and 'Negative' or 'Positive'})
+            # Generate analysis
+            summary = f"Zone shows {'high' if total_score > 75 else 'moderate' if total_score > 50 else 'low'} investment potential with a score of {total_score:.1f}/100."
             
-            Overall Risk Score: {total_score:.2f}/100
+            analysis = f"""
+            Detailed Analysis:
+            - Growth Potential: {'Strong' if growth_score > 75 else 'Moderate' if growth_score > 50 else 'Limited'} ({growth_score:.1f}%)
+            - Safety Rating: {'Low Risk' if crime_penalty < 25 else 'Moderate Risk' if crime_penalty < 50 else 'High Risk'} ({crime_penalty:.1f}%)
+            - Infrastructure: {'Well Developed' if infra_score > 7 else 'Adequate' if infra_score > 5 else 'Needs Improvement'} ({infra_score:.1f}/10)
+            - Market Sentiment: {'Positive' if sentiment_score > 75 else 'Neutral' if sentiment_score > 50 else 'Negative'} ({sentiment_score:.1f}%)
+            
+            Overall Assessment:
+            This zone demonstrates {total_score:.1f}% alignment with optimal investment criteria.
             """
             
             return {
-                "summary": analysis[:200],  # First 200 chars as summary
+                "summary": summary,
                 "full_analysis": analysis,
                 "confidence": 70.0,  # Lower confidence for rule-based
                 "generated_by": "rule-based"
@@ -171,74 +175,77 @@ class PredictionService:
         except Exception as e:
             print(f"Error generating rule-based insights: {str(e)}")
             return {
-                "summary": "Error generating insights",
-                "full_analysis": f"Error: {str(e)}",
+                "summary": "Unable to generate insights due to insufficient data",
+                "full_analysis": "Error analyzing zone metrics",
                 "confidence": 0.0,
                 "generated_by": "error-handler"
             }
 
-    async def generate_ai_insights(self, zone_data: Dict) -> Dict:
+    async def generate_ai_insights(self, zone_data: Dict, predicted_score: float) -> Dict:
         """Generate AI insights using OpenAI for a specific zone."""
         if not self.openai_client:
             return self._generate_rule_based_insights(zone_data)
 
         try:
-            # Include ML predictions in the context
-            ml_score = zone_data.get('predicted_score', 'N/A')
-            ml_category = zone_data.get('zone_category', 'N/A')
+            # Format metrics for analysis
+            metrics = {
+                'growth_rate': f"{zone_data.get('growth_rate', 0) * 100:.1f}%",
+                'crime_rate': f"{zone_data.get('crime_rate', 0) * 100:.1f}%",
+                'infrastructure_score': f"{zone_data.get('infrastructure_score', 0)}/10",
+                'sentiment': f"{zone_data.get('sentiment', 0) * 100:.1f}%",
+                'interest_rate': f"{zone_data.get('interest_rate', 0):.1f}%",
+                'wages': f"${zone_data.get('wages', 0):,.2f}",
+                'housing_supply': zone_data.get('housing_supply', 'Unknown'),
+                'immigration': zone_data.get('immigration', 'Unknown')
+            }
             
             # Prepare context for OpenAI
             context = f"""
-            Analyze this real estate zone data and provide investment insights and zoning recommendation:
+            Analyze this real estate zone data and provide investment insights:
             
-            ML Model Predictions:
-            - Predicted Risk Score: {ml_score}
-            - Initial Zone Category: {ml_category}
+            Predicted Risk Score: {predicted_score:.1f}/100
             
-            Zone Metrics:
-            - Growth Rate: {zone_data['growth_rate']}%
-            - Crime Rate: {zone_data['crime_rate']}
-            - Infrastructure Score: {zone_data['infrastructure_score']}
-            - Market Sentiment: {zone_data['sentiment']}
-            - Interest Rate: {zone_data['interest_rate']}%
-            - Wage Growth: {zone_data['wages']}%
-            - Housing Supply: {zone_data['housing_supply_encoded']}
-            - Immigration Trend: {zone_data['immigration_encoded']}
+            Key Metrics:
+            - Growth Rate: {metrics['growth_rate']}
+            - Crime Rate: {metrics['crime_rate']}
+            - Infrastructure Score: {metrics['infrastructure_score']}
+            - Market Sentiment: {metrics['sentiment']}
+            - Interest Rate: {metrics['interest_rate']}
+            - Average Wages: {metrics['wages']}
+            - Housing Supply: {metrics['housing_supply']}
+            - Immigration Trend: {metrics['immigration']}
             
-            Based on this data:
-            1. Validate or adjust the ML model's zone categorization
-            2. Provide key insights about investment potential
-            3. Explain any discrepancy if your recommendation differs from the ML prediction
+            Provide:
+            1. A brief summary (1-2 sentences)
+            2. Detailed analysis of investment potential
+            3. Key risk factors and opportunities
             """
 
-            response = self.openai_client.chat.completions.create(
+            response = await self.openai_client.chat.completions.create(
                 model="gpt-4",
                 messages=[{
                     "role": "system",
-                    "content": "You are a real estate investment analysis AI. Your task is to validate ML predictions and provide final zoning recommendations with explanations."
+                    "content": "You are a real estate investment analysis AI. Provide concise, data-driven insights."
                 }, {
                     "role": "user",
                     "content": context
-                }]
+                }],
+                temperature=0.7,
+                max_tokens=500
             )
 
-            # Parse the response
             analysis = response.choices[0].message.content
-
-            # Extract final zone recommendation from AI analysis
-            if "red zone" in analysis.lower():
-                final_category = "red"
-            elif "green zone" in analysis.lower():
-                final_category = "green"
-            else:
-                final_category = "yellow"
+            
+            # Split analysis into summary and full analysis
+            lines = analysis.split('\n')
+            summary = lines[0].strip()
+            full_analysis = '\n'.join(lines[1:]).strip()
 
             return {
-                "summary": analysis[:200],  # First 200 chars as summary
-                "full_analysis": analysis,
-                "confidence": 90,  # Based on data quality
-                "generated_by": "gpt-4",
-                "final_category": final_category  # AI's final zoning decision
+                "summary": summary,
+                "full_analysis": full_analysis,
+                "confidence": 90.0,  # High confidence with GPT-4
+                "generated_by": "gpt-4"
             }
 
         except Exception as e:
@@ -257,36 +264,44 @@ class PredictionService:
             predictions = []
             for _, row in df.iterrows():
                 try:
-                    # Extract postcode for reference
+                    # Extract postcode
                     postcode = str(int(row['postcode']))
                     
-                    # Create feature array for prediction
+                    # Create feature array
                     features = row[['growth_rate', 'crime_rate', 'infrastructure_score',
                                   'sentiment', 'interest_rate', 'wages',
                                   'housing_supply_encoded', 'immigration_encoded']].values.reshape(1, -1)
                     
                     # Get prediction
-                    if self.model is not None:
-                        try:
-                            score = float(self.model.predict(features)[0])
-                        except Exception as e:
-                            print(f"Model prediction failed: {e}")
-                            score = 65.0  # Default moderate score
-                    else:
-                        score = 65.0  # Default moderate score
+                    score = float(self.model.predict(features)[0]) if self.model else 65.0
                     
                     # Generate insights
-                    insights = await self.generate_insights(row.to_dict(), score)
+                    insights = await self.generate_ai_insights(row.to_dict(), score)
                     
-                    # Get color based on score
-                    color = self.get_color(score)
+                    # Determine color based on score
+                    if score >= 75:
+                        color = "green"
+                    elif score >= 50:
+                        color = "yellow"
+                    else:
+                        color = "red"
                     
                     predictions.append({
                         "postcode": postcode,
                         "predicted_score": score,
                         "color": color,
-                        "timestamp": datetime.now().isoformat(),
-                        "ai_insights": insights
+                        "metrics": {
+                            "risk_score": score,
+                            "growth_rate": float(row['growth_rate']),
+                            "crime_rate": float(row['crime_rate']),
+                            "infrastructure_score": float(row['infrastructure_score']),
+                            "sentiment": float(row['sentiment']),
+                            "interest_rate": float(row['interest_rate']),
+                            "wages": float(row['wages']),
+                            "housing_supply": row['housing_supply_encoded'],
+                            "immigration": row['immigration_encoded'],
+                            "ai_insights": insights
+                        }
                     })
                 except Exception as e:
                     print(f"Error processing row: {e}")
@@ -294,11 +309,22 @@ class PredictionService:
                         "postcode": str(int(row['postcode'])),
                         "predicted_score": 65.0,
                         "color": "yellow",
-                        "timestamp": datetime.now().isoformat(),
-                        "ai_insights": {
-                            "summary": "Based on current market data, this zone shows moderate investment potential.",
-                            "confidence": 70,
-                            "sources": ["Market Analysis", "Economic Indicators"]
+                        "metrics": {
+                            "risk_score": 65.0,
+                            "growth_rate": 0.0,
+                            "crime_rate": 0.0,
+                            "infrastructure_score": 5.0,
+                            "sentiment": 0.5,
+                            "interest_rate": 5.0,
+                            "wages": 50000.0,
+                            "housing_supply": "moderate",
+                            "immigration": "stable",
+                            "ai_insights": {
+                                "summary": "Insufficient data for detailed analysis",
+                                "full_analysis": "Unable to generate insights due to data processing error",
+                                "confidence": 0.0,
+                                "generated_by": "error-handler"
+                            }
                         }
                     })
             
@@ -307,37 +333,21 @@ class PredictionService:
         except Exception as e:
             print(f"Error during prediction: {e}")
             return {
-                "score": None,
+                "postcode": "0000",
+                "predicted_score": None,
                 "color": "gray",
-                "timestamp": datetime.now().isoformat(),
-                "ai_insights": {
-                    "summary": "No Data Processed",
-                    "confidence": 0,
-                    "sources": []
+                "metrics": {
+                    "risk_score": None,
+                    "growth_rate": None,
+                    "crime_rate": None,
+                    "infrastructure_score": None,
+                    "sentiment": None,
+                    "interest_rate": None,
+                    "wages": None,
+                    "housing_supply": None,
+                    "immigration": None,
+                    "ai_insights": None
                 }
-            }
-
-    async def generate_insights(self, features_df, prediction):
-        if not self.openai_client:
-            return {
-                'summary': 'No Data Processed',
-                'confidence': 0,
-                'sources': []
-            }
-
-        try:
-            # Your existing insight generation code here
-            return {
-                'summary': 'No Data Processed',
-                'confidence': 0,
-                'sources': []
-            }
-        except Exception as e:
-            print(f"Error generating insights: {str(e)}")
-            return {
-                'summary': 'No Data Processed',
-                'confidence': 0,
-                'sources': []
             }
 
     def get_color(self, score):

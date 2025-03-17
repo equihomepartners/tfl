@@ -1,14 +1,15 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Any, Optional
+from datetime import datetime
 import pandas as pd
+import json
 from .predict import PredictionService
 import uvicorn
 import os
-from datetime import datetime
 import asyncio
 from fastapi.responses import JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="EquiHome Traffic Light System API",
@@ -16,7 +17,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Add CORS middleware
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -25,7 +26,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize the prediction service
+# Initialize prediction service
 predictor = PredictionService()
 
 class ZoneData(BaseModel):
@@ -51,13 +52,24 @@ class AIInsight(BaseModel):
     class Config:
         orm_mode = True
 
+class Metrics(BaseModel):
+    risk_score: Optional[float]
+    growth_rate: Optional[float]
+    crime_rate: Optional[float]
+    infrastructure_score: Optional[float]
+    sentiment: Optional[float]
+    interest_rate: Optional[float]
+    wages: Optional[float]
+    housing_supply: Optional[str]
+    immigration: Optional[str]
+    ai_insights: Optional[AIInsight]
+
 class PredictionResponse(BaseModel):
     postcode: str
-    predicted_score: float
-    zone_category: str
-    timestamp: str
-    ai_insights: AIInsight
-    
+    predicted_score: Optional[float]
+    color: str
+    metrics: Metrics
+
     class Config:
         orm_mode = True
 
@@ -72,6 +84,7 @@ class ZoneSummary(BaseModel):
 
 @app.post("/predict")
 async def predict(data: List[Dict[str, Any]]):
+    """Make predictions for the given data."""
     try:
         # Convert input data to DataFrame
         df = pd.DataFrame(data)
@@ -82,42 +95,26 @@ async def predict(data: List[Dict[str, Any]]):
         ]
         
         # Validate input data
-        for col in required_columns:
-            if col not in df.columns:
-                return JSONResponse(
-                    status_code=400,
-                    content={
-                        'error': f'Missing required column: {col}',
-                        'score': None,
-                        'color': 'gray',
-                        'timestamp': datetime.now().isoformat(),
-                        'ai_insights': {
-                            'summary': 'No Data Processed',
-                            'confidence': 0,
-                            'sources': []
-                        }
-                    }
-                )
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        if missing_columns:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Missing required columns: {', '.join(missing_columns)}"
+            )
 
         # Make prediction
         result = await predictor.predict(df)
-        return result
+        
+        # Validate response format
+        if isinstance(result, list):
+            return [PredictionResponse(**pred) for pred in result]
+        else:
+            return PredictionResponse(**result)
 
     except Exception as e:
-        print(f"Error processing prediction request: {str(e)}")
-        return JSONResponse(
+        raise HTTPException(
             status_code=500,
-            content={
-                'error': str(e),
-                'score': None,
-                'color': 'gray',
-                'timestamp': datetime.now().isoformat(),
-                'ai_insights': {
-                    'summary': 'No Data Processed',
-                    'confidence': 0,
-                    'sources': []
-                }
-            }
+            detail=f"Error processing prediction request: {str(e)}"
         )
 
 @app.get("/summary", response_model=ZoneSummary)
@@ -139,22 +136,8 @@ async def get_summary():
 
 @app.get("/health")
 async def health_check():
-    try:
-        return {
-            "status": "healthy",
-            "model_loaded": predictor.model is not None,
-            "openai_client": predictor.openai_client is not None,
-            "timestamp": datetime.now().isoformat()
-        }
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content={
-                "status": "unhealthy",
-                "error": str(e),
-                "timestamp": datetime.now().isoformat()
-            }
-        )
+    """Health check endpoint."""
+    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
 
 def main():
     """Run the API server"""

@@ -2,12 +2,16 @@ import express from 'express';
 import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
-import WebSocket from 'ws';
+import { fileURLToPath } from 'url';
+import { WebSocket, WebSocketServer } from 'ws';
 import { createServer } from 'http';
 import axios from 'axios';
 import dotenv from 'dotenv';
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -359,7 +363,7 @@ router.get('/boundaries', (req, res) => {
 
 // Add WebSocket support
 const server = createServer(app);
-const wss = new WebSocket.Server({ server });
+const wss = new WebSocketServer({ server });
 
 // WebSocket connection handling
 wss.on('connection', (ws: WebSocket) => {

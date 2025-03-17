@@ -58,6 +58,7 @@ import CompareIcon from '@mui/icons-material/Compare';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import { alpha } from '@mui/material/styles';
 import { MapLayerMouseEvent } from 'react-map-gl';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, ArcElement, ChartTooltip);
 
@@ -148,9 +149,14 @@ interface ModelInfo {
 
 interface AIInsight {
   summary: string;
-  recommendation: string;
   confidence: number;
-  factors: string[];
+  recommendation?: string;
+  full_analysis?: string;
+  factors?: Array<{
+    name: string;
+    impact: number;
+    description: string;
+  }>;
 }
 
 interface MetricCardProps {
@@ -576,40 +582,28 @@ const MetricSection = ({ title, icon, children, aiInsight }: { title: string; ic
 
 const ComprehensiveMetrics = ({ zone }: { zone: Zone }) => {
   const metrics = zone.metrics;
-  
+
   return (
     <Grid container spacing={3}>
-      <Grid item xs={12}>
-        <Typography variant="h6" gutterBottom>
-          Comprehensive Analysis
-        </Typography>
-      </Grid>
-      
-      {/* Market Dynamics */}
+      {/* Risk Assessment */}
       <Grid item xs={12} md={6} lg={3}>
         <Paper sx={{ p: 2 }}>
           <Box sx={{ mb: 2 }}>
             <Typography variant="subtitle1" gutterBottom>
-              Market Dynamics
+              Risk Assessment
             </Typography>
           </Box>
           <List dense>
             <ListItem>
               <ListItemText 
-                primary="Growth Rate" 
-                secondary={metrics?.growth_rate != null ? `${metrics.growth_rate}%` : 'Pending'}
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemText 
                 primary="Risk Score" 
-                secondary={metrics?.risk_score != null ? `${metrics.risk_score}/100` : 'Pending'}
+                secondary={metrics.risk_score != null ? `${metrics.risk_score.toFixed(1)}/100` : 'Pending'}
               />
             </ListItem>
             <ListItem>
               <ListItemText 
-                primary="Market Sentiment" 
-                secondary={metrics?.sentiment != null ? `${(metrics.sentiment * 100).toFixed(1)}%` : 'Pending'}
+                primary="Growth Rate" 
+                secondary={metrics.growth_rate != null ? `${metrics.growth_rate.toFixed(1)}%` : 'Pending'}
               />
             </ListItem>
           </List>
@@ -628,13 +622,13 @@ const ComprehensiveMetrics = ({ zone }: { zone: Zone }) => {
             <ListItem>
               <ListItemText 
                 primary="Quality Score" 
-                secondary={metrics?.infrastructure_score != null ? `${metrics.infrastructure_score}/10` : 'Pending'}
+                secondary={metrics.infrastructure_score != null ? `${metrics.infrastructure_score.toFixed(1)}/10` : 'Pending'}
               />
             </ListItem>
             <ListItem>
               <ListItemText 
                 primary="Development Status" 
-                secondary={metrics?.housing_supply || 'Pending'}
+                secondary={metrics.housing_supply || 'Pending'}
               />
             </ListItem>
           </List>
@@ -653,19 +647,19 @@ const ComprehensiveMetrics = ({ zone }: { zone: Zone }) => {
             <ListItem>
               <ListItemText 
                 primary="Interest Rate" 
-                secondary={metrics?.interest_rate != null ? `${metrics.interest_rate}%` : 'Pending'}
+                secondary={metrics.interest_rate != null ? `${metrics.interest_rate.toFixed(1)}%` : 'Pending'}
               />
             </ListItem>
             <ListItem>
               <ListItemText 
                 primary="Average Wages" 
-                secondary={metrics?.wages != null ? `$${metrics.wages.toLocaleString()}` : 'Pending'}
+                secondary={metrics.wages != null ? `$${metrics.wages.toLocaleString()}` : 'Pending'}
               />
             </ListItem>
             <ListItem>
               <ListItemText 
                 primary="Immigration Trend" 
-                secondary={metrics?.immigration || 'Pending'}
+                secondary={metrics.immigration || 'Pending'}
               />
             </ListItem>
           </List>
@@ -680,17 +674,25 @@ const ComprehensiveMetrics = ({ zone }: { zone: Zone }) => {
               AI Insights
             </Typography>
           </Box>
-          <Typography variant="body2" color="text.secondary">
-            {metrics?.ai_insights?.summary || 'Analysis in progress...'}
-          </Typography>
-          {metrics?.ai_insights?.confidence > 0 && (
-            <Box sx={{ mt: 2 }}>
-              <Chip 
-                size="small"
-                label={`${metrics.ai_insights.confidence}% Confidence`}
-                color="primary"
-              />
-            </Box>
+          {metrics.ai_insights ? (
+            <>
+              <Typography variant="body2" color="text.secondary">
+                {metrics.ai_insights.summary}
+              </Typography>
+              {metrics.ai_insights.confidence > 0 && (
+                <Box sx={{ mt: 2 }}>
+                  <Chip 
+                    size="small"
+                    label={`${metrics.ai_insights.confidence}% Confidence`}
+                    color="primary"
+                  />
+                </Box>
+              )}
+            </>
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              Analysis in progress...
+            </Typography>
           )}
         </Paper>
       </Grid>
@@ -1483,6 +1485,7 @@ const TrafficLightMap = () => {
         setError(null);
 
         const apiUrl = import.meta.env.VITE_API_URL;
+        const mlServiceUrl = 'http://localhost:8000';
         if (!apiUrl) {
           throw new Error('API URL is not configured');
         }
@@ -2050,7 +2053,7 @@ const TrafficLightMap = () => {
                             
                             <Box sx={{ mb: 2 }}>
                               <Typography variant="subtitle1" color="primary" gutterBottom>
-                                Risk Score: {zones[hoveredZone].metrics?.risk_score ?? 'N/A'}
+                                Risk Score: {zones[hoveredZone].metrics?.risk_score != null ? zones[hoveredZone].metrics.risk_score.toFixed(1) : 'Not available'}
                               </Typography>
                               <Typography variant="body2" color="text.secondary">
                                 {zones[hoveredZone].metrics?.description || 'No description available'}
@@ -2067,37 +2070,37 @@ const TrafficLightMap = () => {
                               <ListItem disableGutters>
                                 <ListItemText 
                                   primary="Growth Rate" 
-                                  secondary={zones[hoveredZone].metrics?.growth_rate != null ? `${zones[hoveredZone].metrics.growth_rate}%` : 'N/A'}
+                                  secondary={zones[hoveredZone]?.metrics?.growth_rate != null ? `${zones[hoveredZone].metrics.growth_rate}%` : 'Not available'}
                                 />
                               </ListItem>
                               <ListItem disableGutters>
                                 <ListItemText 
                                   primary="Infrastructure Score" 
-                                  secondary={zones[hoveredZone].metrics?.infrastructure_score ?? 'N/A'}
+                                  secondary={zones[hoveredZone]?.metrics?.infrastructure_score ?? 'Not available'}
                                 />
                               </ListItem>
                               <ListItem disableGutters>
                                 <ListItemText 
                                   primary="Employment Rate" 
-                                  secondary={zones[hoveredZone].metrics?.employment_rate != null ? `${zones[hoveredZone].metrics.employment_rate}%` : 'N/A'}
+                                  secondary={zones[hoveredZone]?.metrics?.employment_rate != null ? `${zones[hoveredZone].metrics.employment_rate}%` : 'Not available'}
                                 />
                               </ListItem>
                               <ListItem disableGutters>
                                 <ListItemText 
                                   primary="Sentiment" 
-                                  secondary={zones[hoveredZone].metrics?.sentiment != null ? `${(zones[hoveredZone].metrics.sentiment * 100).toFixed(1)}%` : 'N/A'}
+                                  secondary={zones[hoveredZone]?.metrics?.sentiment != null ? `${(zones[hoveredZone].metrics.sentiment * 100).toFixed(1)}%` : 'Not available'}
                                 />
                               </ListItem>
                               <ListItem disableGutters>
                                 <ListItemText 
                                   primary="Housing Supply" 
-                                  secondary={zones[hoveredZone].metrics?.housing_supply ?? 'N/A'}
+                                  secondary={zones[hoveredZone]?.metrics?.housing_supply ?? 'Not available'}
                                 />
                               </ListItem>
                               <ListItem disableGutters>
                                 <ListItemText 
                                   primary="Immigration Trend" 
-                                  secondary={zones[hoveredZone].metrics?.immigration ?? 'N/A'}
+                                  secondary={zones[hoveredZone]?.metrics?.immigration ?? 'Not available'}
                                 />
                               </ListItem>
                             </List>
@@ -2209,43 +2212,28 @@ const TrafficLightMap = () => {
                           <Grid item xs={12} md={4}>
                             <MetricCard
                               title="Risk Score"
-                              value={`${zones[selectedZone].metrics.risk_score}/100`}
-                              trend="+2.3"
+                              value={zones[selectedZone].metrics.risk_score}
+                              trend={"+2.5"}
                               trendLabel="vs last month"
-                              aiInsight={{
-                                summary: "Zone risk profile is balanced with moderate exposure",
-                                recommendation: "Monitor market conditions for changes",
-                                confidence: 85,
-                                factors: ["Risk Trend", "Market Stability", "Economic Indicators"]
-                              }}
+                              aiInsight={zones[selectedZone].metrics.ai_insights || undefined}
                             />
                           </Grid>
                           <Grid item xs={12} md={4}>
                             <MetricCard
                               title="Growth Rate"
-                              value={`${zones[selectedZone].metrics.growth_rate}%`}
-                              trend="+0.5"
+                              value={zones[selectedZone].metrics.growth_rate}
+                              trend={"+1.8"}
                               trendLabel="vs last month"
-                              aiInsight={{
-                                summary: "Zone growth potential is positive with moderate supply",
-                                recommendation: "Maintain investment strategy",
-                                confidence: 80,
-                                factors: ["Growth Potential", "Housing Supply", "Market Dynamics"]
-                              }}
+                              aiInsight={zones[selectedZone].metrics.ai_insights || undefined}
                             />
                           </Grid>
                           <Grid item xs={12} md={4}>
                             <MetricCard
                               title="Infrastructure"
                               value={zones[selectedZone].metrics.infrastructure_score}
-                              trend="+1.2"
+                              trend={"+1.2"}
                               trendLabel="vs last month"
-                              aiInsight={{
-                                summary: "Zone infrastructure is well-developed with excellent amenities",
-                                recommendation: "Maintain investment strategy",
-                                confidence: 90,
-                                factors: ["Infrastructure Quality", "Transport Accessibility", "Development Activity"]
-                              }}
+                              aiInsight={zones[selectedZone].metrics.ai_insights || undefined}
                             />
                           </Grid>
                         </Grid>
