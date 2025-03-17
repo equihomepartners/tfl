@@ -1,14 +1,36 @@
 .mapboxgl-popup {
   z-index: 1;
+  max-height: none !important;
 }
 
 .mapboxgl-popup-content {
-  padding: 12px;
+  padding: 16px !important;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   background-color: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.2);
+  max-height: 70vh !important;
+  overflow-y: auto !important;
+  width: 350px !important;
+}
+
+.mapboxgl-popup-close-button {
+  padding: 4px 8px !important;
+  font-size: 16px !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  background: none !important;
+  border: none !important;
+  cursor: pointer !important;
+  position: absolute !important;
+  right: 4px !important;
+  top: 4px !important;
+}
+
+.mapboxgl-popup-close-button:hover {
+  color: rgba(0, 0, 0, 0.8) !important;
+  background: rgba(0, 0, 0, 0.05) !important;
+  border-radius: 4px !important;
 }
 
 /* Dashboard Cards */

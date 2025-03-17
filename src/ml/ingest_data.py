@@ -7,6 +7,7 @@ import requests
 import logging
 from typing import Dict, List, Any, Optional
 from abc import ABC, abstractmethod
+from bs4 import BeautifulSoup
 
 # Set up logging
 logging.basicConfig(
@@ -49,18 +50,82 @@ class ABSSource(DataSource):
     
     def fetch_data(self) -> pd.DataFrame:
         logger.info("Fetching ABS data...")
-        # TODO: Implement actual API call
-        # Mock data for now
-        data = pd.DataFrame({
-            'postcode': ['2000', '2026', '2028'],
-            'population': [25000, 15000, 12000],
-            'employment_rate': [95.2, 94.0, 96.0],
-            'wages': [8.5, 7.8, 9.0]
-        })
-        return data
+        
+        # Fetch macro indicators
+        macro_data = self._fetch_macro_indicators()
+        
+        # Fetch local area data
+        local_data = self._fetch_local_data()
+        
+        # Combine the data
+        combined_data = local_data.copy()
+        for macro_metric in macro_data.columns:
+            if macro_metric != 'postcode':
+                # Add macro data as additional columns
+                combined_data[f'macro_{macro_metric}'] = macro_data[macro_metric].iloc[0]
+        
+        return combined_data
+    
+    def _fetch_macro_indicators(self) -> pd.DataFrame:
+        """Fetch national-level economic indicators"""
+        url = 'https://www.abs.gov.au/statistics/economy/key-indicators'
+        try:
+            tables = pd.read_html(url)
+            # Process and combine relevant tables
+            macro_data = pd.DataFrame()
+            
+            # Extract relevant economic indicators
+            for table in tables:
+                if 'indicator' in table.columns.str.lower():
+                    processed_table = self._process_macro_table(table)
+                    macro_data = pd.concat([macro_data, processed_table], axis=1)
+            
+            return macro_data
+        except Exception as e:
+            logger.error(f"Error fetching macro data: {str(e)}")
+            return pd.DataFrame()
+    
+    def _fetch_local_data(self) -> pd.DataFrame:
+        """Fetch postcode-specific data"""
+        local_data = []
+        base_url = "https://www.abs.gov.au/census/find-census-data/quickstats/2021/POA"
+        
+        for postcode in ['2000', '2026', '2028']:  # Your target postcodes
+            try:
+                url = f"{base_url}{postcode}"
+                response = requests.get(url)
+                soup = BeautifulSoup(response.text, 'html.parser')
+                
+                # Extract local statistics
+                data = {
+                    'postcode': postcode,
+                    'timestamp': datetime.now().strftime('%Y%m%d')
+                }
+                
+                # Add extraction of specific metrics here
+                # This will be customized based on the HTML structure
+                
+                local_data.append(data)
+            except Exception as e:
+                logger.error(f"Error fetching data for postcode {postcode}: {str(e)}")
+        
+        return pd.DataFrame(local_data)
+    
+    def _process_macro_table(self, table: pd.DataFrame) -> pd.DataFrame:
+        """Process a macro indicator table"""
+        # Clean column names
+        table.columns = table.columns.str.strip().str.lower()
+        
+        # Convert numeric values
+        for col in table.columns:
+            if col != 'indicator':
+                table[col] = pd.to_numeric(table[col].str.replace('%', '').str.replace(',', ''), errors='coerce')
+        
+        return table
     
     def validate_data(self, data: pd.DataFrame) -> bool:
-        required_columns = ['postcode', 'population', 'employment_rate', 'wages']
+        """Validate the fetched data"""
+        required_columns = ['postcode', 'timestamp']
         return all(col in data.columns for col in required_columns)
 
 class PropertySource(DataSource):

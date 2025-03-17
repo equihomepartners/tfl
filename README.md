@@ -1,314 +1,112 @@
 # EquiHome Traffic Light System
 
-A data-driven real estate investment analysis system using machine learning to provide traffic light zoning (green, yellow, red) for Sydney suburbs. The system combines real-time market data, historical trends, and predictive analytics to assist in investment decisions.
+A comprehensive real estate analysis system that combines machine learning predictions with real-time market data to provide investment insights.
 
-## System Architecture
+## Environment Setup
 
-### Frontend (React + TypeScript + Vite)
-- Interactive map visualization with Mapbox GL JS
-- Real-time zone updates and metrics dashboard
-- Material UI components for modern UX
-- Chart.js for data visualization
+1. Create a `.env` file in the root directory:
+```bash
+ML_SERVICE_URL=http://localhost:8000
+OPENAI_API_KEY=your_openai_api_key_here
+```
 
-### Backend (Node.js + Express)
-- RESTful API endpoints for zone data and metrics
-- Real-time data processing pipeline
-- Integration with ML service
-- Data validation and transformation
+2. Create a `.env` file in the frontend directory:
+```bash
+VITE_MAPBOX_TOKEN=your_mapbox_token_here
+```
 
-### ML Service (Python)
-- XGBoost model for zone predictions
-- Real-time data ingestion from multiple sources
-- Feature engineering pipeline
-- Model performance monitoring
-
-### Data Pipeline
-- ABS data integration
-- Market metrics collection
-- Sentiment analysis
-- Infrastructure scoring
-
-## Development Setup
-
-1. Install dependencies:
+3. Install Node.js dependencies:
 ```bash
 # Install Node.js dependencies
 npm install
+cd frontend && npm install
+```
+
+4. Set up Python environment:
+```bash
+# Install Python 3.11 (if not already installed)
+brew install python@3.11
+
+# Create and activate virtual environment
+python3.11 -m venv venv311
+source venv311/bin/activate
 
 # Install Python dependencies
 pip install -r requirements.txt
+
+# Verify installations
+python3.11 -c "import pandas; import xgboost; import fastapi; import uvicorn; print('All ML dependencies installed successfully!')"
 ```
 
-2. Configure environment:
-```bash
-# Copy example env files
-cp .env.example .env
-cp frontend/.env.example frontend/.env
+## Important ML Service Requirements
 
-# Add your Mapbox token to frontend/.env
-echo "VITE_MAPBOX_TOKEN=your_token_here" >> frontend/.env
+The ML service requires specific versions of Python packages to function correctly:
+- Python 3.11 (not 3.13 or other versions)
+- pandas==2.2.3
+- scikit-learn==1.6.1
+- fastapi==0.115.11
+- uvicorn==0.34.0
+- xgboost==3.0.0
+- openai==1.66.3
+- python-dotenv==1.0.1
+- numpy==2.2.4
+- pydantic==1.10.13
+- joblib>=1.1.0
+
+Common issues and solutions:
+1. If you see "ModuleNotFoundError", make sure you're using the correct virtual environment (venv311)
+2. If port 8000 is in use, run `npm run kill:ports` to clear it
+3. Always use `source venv311/bin/activate` before starting the ML service
+4. The ML service must be running before starting the backend
+
+## Quick Start
+
+To start all services (frontend, backend, and ML) with a single command:
+
+```bash
+npm run start-all
 ```
 
-3. Start development servers:
-```bash
-# Start both frontend and backend in development mode
-npm run dev
+This will:
+1. Clear any existing processes on ports 3000, 3001, and 8000
+2. Start the ML prediction service on port 8000 (using Python 3.11)
+3. Start the backend server on port 3000
+4. Start the frontend development server on port 3001
 
-# Or start individually:
-npm run dev:frontend  # Frontend only
-npm run dev:backend   # Backend only
+The application will be available at:
+- Frontend: http://localhost:3001
+- Backend API: http://localhost:3000
+- ML Service: http://localhost:8000
+
+## Manual Start
+
+If you need to start services individually:
+
+1. Start the ML service:
+```bash
+source venv311/bin/activate && python3.11 start_ml_service.py
 ```
 
-## Development Scripts
-
+2. Start the backend:
 ```bash
-# Start development environment
-npm run dev
-
-# Start backend only
 npm run dev:backend
+```
 
-# Start frontend only
+3. Start the frontend:
+```bash
 npm run dev:frontend
-
-# Run ML model training
-python src/ml/train.py
-
-# Run data ingestion
-python src/ml/ingest_data.py
-
-# Kill running servers
-npm run kill:ports
-
-# Restart entire application
-npm run restart
 ```
 
-## Project Structure
+## Development
 
-```
-equihome-tfl/
-├── src/
-│   ├── server.ts              # Express backend server
-│   ├── ml/
-│   │   ├── train.py          # ML model training
-│   │   ├── predict.py        # Real-time predictions
-│   │   └── ingest_data.py    # Data pipeline
-│   └── types/                # TypeScript types
-├── frontend/
-│   ├── src/
-│   │   ├── components/       # React components
-│   │   └── services/         # API services
-│   └── public/
-├── data/
-│   ├── raw/                  # Raw data files
-│   └── processed/            # Processed datasets
-└── models/                   # Trained ML models
-```
+- Backend runs on port 3000 (TypeScript/Node.js)
+- Frontend runs on port 3001 (React/TypeScript)
+- ML Service runs on port 8000 (Python/FastAPI)
+- Uses Mapbox for visualization (ensure you have a valid token in `.env`)
+- Uses OpenAI GPT-4 for AI insights (ensure you have a valid API key in `.env`)
 
-## Data Sources
+## Additional Commands
 
-Currently using mock data for development, will integrate with:
-- ABS (Australian Bureau of Statistics)
-- Property market data
-- Infrastructure development data
-- Economic indicators
-- Social sentiment data
-
-## ML Pipeline (In Development)
-
-1. Data Ingestion
-   - Real-time market data collection
-   - ABS data integration
-   - Infrastructure metrics
-
-2. Feature Engineering
-   - Growth rate calculations
-   - Risk metrics
-   - Sentiment analysis
-   - Infrastructure scoring
-
-3. Model Training
-   - XGBoost model
-   - Hyperparameter optimization
-   - Cross-validation
-   - Performance metrics
-
-4. Prediction Service
-   - Real-time zone predictions
-   - Confidence scoring
-   - Trend analysis
-   - Risk assessment
-
-## Current Status
-
-- ✅ Basic frontend map visualization
-- ✅ Mock data integration
-- ✅ Zone coloring system
-- ⏳ ML model development
-- ⏳ Real-time data pipeline
-- ⏳ Automated predictions
-
-## Next Steps
-
-### Phase 1: Data Pipeline & ETL
-1. Set up data lake structure:
-   - Raw data storage for each source
-   - Processed data organization
-   - Metadata management
-   - Version control for datasets
-
-2. Implement API integrations:
-   - ABS API for demographic data
-   - Domain/REA Group API for property data
-   - RBA API for economic indicators
-   - NSW Government APIs for infrastructure/crime data
-   - News and social media APIs
-
-3. Create ETL pipelines:
-   - Data validation and cleaning
-   - Automated updates scheduling
-   - Error handling and monitoring
-   - Data quality checks
-   - Transformation pipelines
-
-### Phase 2: ML Model Enhancement
-1. Feature engineering:
-   - Time series feature creation
-   - Geographic feature extraction
-   - Sentiment analysis pipeline
-   - Interaction features
-
-2. Model improvements:
-   - Cross-validation implementation
-   - Hyperparameter optimization
-   - Model performance metrics
-   - Confidence scoring
-   - A/B testing framework
-
-### Phase 3: API Layer Development
-1. Backend API endpoints:
-   - Real-time prediction endpoints
-   - Data update triggers
-   - Model retraining endpoints
-   - Performance monitoring endpoints
-
-2. API documentation:
-   - OpenAPI/Swagger specs
-   - Rate limiting
-   - Authentication
-   - Error handling
-
-### Phase 4: Frontend Visualization
-1. Model performance dashboards:
-   - Feature importance plots
-   - Prediction vs actual comparisons
-   - Cross-validation results
-   - Error analysis
-
-2. Data quality monitoring:
-   - Data freshness indicators
-   - Source reliability metrics
-   - Update frequency tracking
-   - Error rate monitoring
-
-### Phase 5: Production Readiness
-1. Infrastructure setup:
-   - Automated deployment pipeline
-   - Monitoring and alerting
-   - Backup and recovery
-   - Performance optimization
-
-2. Documentation:
-   - System architecture
-   - API documentation
-   - Maintenance guides
-   - User guides
-
-## License
-
-Proprietary - All rights reserved
-
-## Metrics & Data Sources
-
-### Zone Metrics
-Each zone (suburb) is evaluated using the following metrics:
-
-1. **Growth Indicators**
-   - Growth Rate (0-10): Annual property value growth
-   - Employment Rate (0-100): Local employment percentage
-   - Wages (0-10): Average wage growth indicator
-
-2. **Risk Factors**
-   - Crime Rate (0-10): Area safety indicator
-   - Infrastructure Score (0-10): Quality of local infrastructure
-   - School Rating (0-10): Educational facilities rating
-
-3. **Market Conditions**
-   - Housing Supply ('High', 'Moderate', 'Low'): Current market inventory
-   - Immigration ('Increasing', 'Stable', 'Decreasing'): Population movement trends
-   - Interest Rate: Current lending rates
-   - Sentiment (0-1): Market sentiment score
-
-4. **Composite Scores**
-   - Risk Score (0-100): Overall investment risk assessment
-   - Color Rating: Green (Low Risk), Yellow (Moderate Risk), Red (High Risk)
-   - Trend: Current movement pattern (e.g., 'Stable Yellow')
-
-### Data Integration Sources
-
-1. **Property Market Data**
-   - Domain API: Property listings and sales data
-   - REA Group API: Market analytics and trends
-   - CoreLogic: Historical property data
-
-2. **Government Data**
-   - ABS (Australian Bureau of Statistics):
-     - Population demographics
-     - Employment statistics
-     - Income data
-   - RBA (Reserve Bank of Australia):
-     - Interest rates
-     - Economic indicators
-   - NSW Government:
-     - Crime statistics
-     - Infrastructure projects
-     - School ratings
-
-3. **Alternative Data**
-   - Social Media Sentiment
-   - News API
-   - Development Applications
-   - Council Planning Data
-
-### AGBoost Model Features
-
-The AGBoost (Advanced Gradient Boosting) model uses the following feature set:
-- Primary Features: growth_rate, crime_rate, infrastructure_score, school_rating
-- Economic Indicators: employment_rate, wages, interest_rate
-- Market Conditions: housing_supply, immigration
-- Sentiment Analysis: sentiment score
-- Historical Trends: Previous risk scores and color ratings
-
-### Real-time Updates
-- Market metrics: Daily updates
-- Economic indicators: Monthly updates
-- Government statistics: Quarterly updates
-- Sentiment analysis: Real-time processing
-- Risk scores: Recalculated daily
-
-## Development Status
-
-Current Implementation:
-- ✅ Basic metrics collection
-- ✅ AGBoost model integration
-- ✅ Real-time risk score calculation
-- ✅ Zone coloring system
-- ✅ Trend analysis
-
-Next Phase:
-- ⏳ API integrations for live data
-- ⏳ Advanced feature engineering
-- ⏳ Model performance optimization
-- ⏳ Historical data analysis
-- ⏳ Automated data pipeline 
+- `npm run build` - Build both frontend and backend
+- `npm run restart` - Restart all services
+- `npm run kill:ports` - Clear ports 3000, 3001, and 8000 

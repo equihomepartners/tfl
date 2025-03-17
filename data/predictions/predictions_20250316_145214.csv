@@ -1,0 +1,2 @@
+postcode,growth_rate,crime_rate,infrastructure_score,sentiment,interest_rate,wages,housing_supply_encoded,immigration_encoded,predicted_score,zone_category,ai_insights
+2000,5.0,2.0,80.0,0.7,4.5,85000.0,1,2,70.0533,green,"{'summary': 'Analysis shows Moderate growth rate of 5.0%, strong infrastructure development. Overall risk score: 70.05329895019531/100.', 'full_analysis': 'Analysis shows Moderate growth rate of 5.0%, strong infrastructure development. Overall risk score: 70.05329895019531/100.', 'confidence': 88, 'generated_by': 'rule-based'}"

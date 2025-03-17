@@ -4,13 +4,16 @@
   "description": "EquiHome Traffic Light System",
   "main": "src/server.ts",
   "scripts": {
+    "setup:ml": "deactivate 2>/dev/null || true && rm -rf venv venv311 && /opt/homebrew/opt/python@3.11/bin/python3.11 -m venv venv311 && source venv311/bin/activate && pip install -r requirements.txt",
     "dev:backend": "ts-node src/server.ts",
     "dev:frontend": "cd frontend && npm run dev",
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "kill:ports": "kill-port 3000 3001",
-    "restart": "npm run kill:ports || true && npm run dev",
+    "dev:ml": "source venv311/bin/activate && PYTHONPATH=$PYTHONPATH:. /opt/homebrew/opt/python@3.11/bin/python3.11 -m uvicorn src.ml.api:app --reload --host 0.0.0.0 --port 8000",
+    "dev": "concurrently \"npm run dev:ml\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "kill:ports": "kill-port 3000 3001 8000",
+    "restart": "npm run setup:ml && npm run kill:ports || true && npm run dev",
     "build": "tsc && cd frontend && npm run build",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "start-all": "npm run kill:ports || true && echo 'Starting EquiHome TFL System...' && npm run dev"
   },
   "dependencies": {
     "@types/mapbox-gl": "^3.4.1",
